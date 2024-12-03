@@ -6,7 +6,7 @@ const CoachProfile = () => {
     <div className="bg-white py-12 px-6 sm:px-12 md:px-20 lg:px-32">
       {/* Header Section */}
       <div className="text-center mb-12">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl mb-20 font-extrabold text-black">
+        <h1 id="top-coaches" className="text-3xl sm:text-4xl md:text-5xl mb-20 font-extrabold text-black">
           MEET OUR TOP <br />COACHES
         </h1>
       </div>

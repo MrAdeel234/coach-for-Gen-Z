@@ -41,7 +41,6 @@ const LandingPage = () => {
 
         {/* Right Section */}
         <div className="relative w-full sm:w-1/2 flex justify-center items-center mt-8 sm:mt-0">
-          <div className="absolute -top-8 sm:-top-16 left-10 sm:left-16 bg-pink-100 rounded-full w-64 h-64 sm:w-80 sm:h-80 opacity-30"></div>
           <img
             src={pic}
             alt="Main Display"
