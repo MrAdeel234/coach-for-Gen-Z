@@ -1,8 +1,20 @@
-import React from 'react';
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
-const CourseCard = ({ image, title, description, username }) => {
+const CourseCard = ({id, image, video, title, description, username }) => {
+  const navigate = useNavigate();
+
+  const handleNavigation = () => {
+    navigate(`/courses/${id}`);
+  };
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-4 mx-auto my-4 w-full lg:w-10/12">
+    <div
+      className="bg-white p-6 rounded-lg shadow-md flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-4 mx-auto my-4 w-full lg:w-10/12"
+      onClick={() => {
+        handleNavigation();
+      }}
+      style={{'cursor': "pointer"}}
+    >
       {/* Course Image and Details */}
       <div className="flex flex-col lg:flex-row items-center space-x-4 lg:space-x-4">
         <img

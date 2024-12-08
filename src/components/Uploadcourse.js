@@ -1,40 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from "react";
+import { AppContext } from "../context/AppContext";
 
 function Uploadcourse() {
-  // State hooks for form inputs and alert message
-  const [courseTitle, setCourseTitle] = useState('');
-  const [courseDescription, setCourseDescription] = useState('');
+  const { user, setCourses, setUser } = useContext(AppContext);
+  const [courseTitle, setCourseTitle] = useState("");
+  const [courseDescription, setCourseDescription] = useState("");
   const [courseVideo, setCourseVideo] = useState(null);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [courseImage, setCourseImage] = useState(null);
+  const [alertMessage, setAlertMessage] = useState("");
 
-  // Handle file input for video
   const handleVideoChange = (event) => {
     setCourseVideo(event.target.files[0]);
   };
 
-  const handleSubmit = (event) => {
+  const handleImageChange = (event) => {
+    setCourseImage(event.target.files[0]);
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    setAlertMessage('');
-    if (!courseTitle || !courseDescription || !courseVideo) {
-      setAlertMessage('Please fill in all the fields.');
+    setAlertMessage("");
+
+    if (!courseTitle || !courseDescription || !courseVideo || !courseImage) {
+      setAlertMessage("Please fill in all the fields.");
       return;
     }
-    // Handle course upload logic here (e.g., send to an API or update state)
-    console.log('Course uploaded:', {
-      title: courseTitle,
-      description: courseDescription,
-      video: courseVideo,
-    });
-    // Reset form fields after submission
-    setCourseTitle('');
-    setCourseDescription('');
-    setCourseVideo(null);
+
+    const formData = new FormData();
+    formData.append("title", courseTitle);
+    formData.append("description", courseDescription);
+    formData.append("image", courseImage);
+    formData.append("video", courseVideo);
+    formData.append("instructorId", user._id);
+    formData.append("username", user.username);
+
+    try {
+      const response = await fetch("http://localhost:6001/uploadCourse", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.updatedInstructor);
+        setCourses(data.courses);
+        console.log(data);
+        setAlertMessage("Course uploaded successfully!");
+      } else {
+        const error = await response.json();
+        setAlertMessage(error.message || "Failed to upload course.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setAlertMessage("An error occurred. Please try again.");
+    } finally {
+      setCourseTitle("");
+      setCourseDescription("");
+      setCourseVideo(null);
+      setCourseImage(null);
+    }
   };
 
   return (
     <>
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold text-pink-500">Upload a Course Content</h2>
+        <h2 className="text-xl font-semibold text-pink-500">
+          Upload a Course Content
+        </h2>
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             {alertMessage && (
@@ -63,6 +95,17 @@ function Uploadcourse() {
               className="w-full p-2 border rounded-lg mt-2"
               rows="4"
               placeholder="Enter course description"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700" htmlFor="courseImage">
+              Select Image
+            </label>
+            <input
+              type="file"
+              id="courseImage"
+              onChange={handleImageChange}
+              className="w-full p-2 border rounded-lg mt-2"
             />
           </div>
           <div>

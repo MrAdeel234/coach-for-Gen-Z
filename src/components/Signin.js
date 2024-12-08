@@ -1,44 +1,65 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { AppContext } from "../context/AppContext";
 import logo from "./images/Frame 229.png"; // Update with your logo
 
 const LoginForm = () => {
+  const { setUser, userType, setUserType } = useContext(AppContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // Store error message
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
-  const location = useLocation(); // To get current route and query params
-
-  const userType = new URLSearchParams(location.search).get("userType"); // Extract userType from query
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Reset error message
     setErrorMessage("");
 
-    // Simulate a successful login (mock API response)
-    if (email === "amazhar785@gmail.com" && password === "password123") {
-      const mockUserData = {
-        name: "John Doe",
-        userType: userType, // Use the user type from query param
-        profilePhoto: "path/to/profile-photo.jpg", // Replace with actual photo path
-      };
+    try {
+      if (!email || !password)
+        return setErrorMessage("Please fill out all the fields.");
 
-      // Store mock user data and token in localStorage
-      localStorage.setItem("authToken", "mock-token-12345");
-      localStorage.setItem("userData", JSON.stringify(mockUserData));
-
-      // Redirect user based on user type
+      // Authenticate Student
       if (userType === "student") {
-        navigate("/student-dashboard"); // Student dashboard
-      } else if (userType === "coach") {
-        navigate("/coach-dashboard"); // Coach dashboard
+        console.log("Student");
+        const url = `http://localhost:6001/authenticateStudent?email=${email}&password=${password}`;
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await response.json();
+        if (response.ok && data) {
+          setUser(data.student);
+          setUserType(data.userType);
+          localStorage.setItem("user", JSON.stringify(data.student));
+          localStorage.setItem("userType", data.userType);
+          navigate("/courses");
+        }
+      } else if (userType === "instructor") {
+        const url = `http://localhost:6001/authenticateInstructor?email=${email}&password=${password}`;
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const data = await response.json();
+        if (response.ok && data) {
+          setUser(data.instructor);
+          setUserType(data.userType);
+          localStorage.setItem("user", JSON.stringify(data.instructor));
+          localStorage.setItem("userType", data.userType);
+          navigate("/coach-dashboard");
+        }
+      } else {
+        setErrorMessage("Invalid email or password.");
       }
-    } else {
-      // Set error message if login failed
-      setErrorMessage("Invalid email or password.");
+    } catch (error) {
+      setErrorMessage("An error occurred while fetching student data.");
     }
   };
 
@@ -58,7 +79,10 @@ const LoginForm = () => {
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="rounded-md shadow-sm space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Email
               </label>
               <input
@@ -74,7 +98,10 @@ const LoginForm = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Password
               </label>
               <input
@@ -108,7 +135,10 @@ const LoginForm = () => {
 
         <p className="text-center text-sm text-gray-500">
           Not a member?{" "}
-          <a href="/signup" className="font-medium text-pink-600 hover:text-pink-500">
+          <a
+            href="/signup"
+            className="font-medium text-pink-600 hover:text-pink-500"
+          >
             Sign Up
           </a>
         </p>

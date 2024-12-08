@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
 import background from "../components/images/pic5.png"; // Adjust the path to your uploaded image
 import { useNavigate } from "react-router-dom"; 
+import { AppContext } from "../context/AppContext";
 
 
 const HeroSection = () => {
+
+  const { user } = useContext(AppContext);
 
     const navigate = useNavigate();
     const handleNavigate = (type) => {
@@ -32,16 +35,16 @@ const HeroSection = () => {
         </h1>
         <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 mt-12 justify-center items-center">
           <button
-          className="bg-pink-500 text-white px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base rounded-md shadow-md hover:bg-pink-600 transition"
-          onClick={() => handleNavigate("student")}>
-          
-            Login as a Student
+            onClick={() => handleNavigate("student")}
+            className="px-6 py-3 bg-pink-500 text-white font-semibold rounded-lg hover:bg-pink-600"
+          >
+            Login as Student
           </button>
-          <button 
-          className="border border-pink-500 text-white px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base rounded-md hover:bg-white hover:text-black transition"
-          onClick={() => handleNavigate("coach")}> {/* Set coach */}
-          
-            Login as an Instructor
+          <button
+            onClick={() => handleNavigate("instructor")}
+            className="px-6 py-3 bg-white text-pink-500 font-semibold rounded-lg hover:bg-gray-100"
+          >
+            Login as Instructor
           </button>
         </div>
       </div>

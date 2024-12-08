@@ -1,16 +1,19 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Keeping this for navigation
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AppContext } from "../context/AppContext";
 
-import { AcademicCapIcon, UserGroupIcon, CheckCircleIcon } from "@heroicons/react/24/outline"; // Updated icons
-import { Alert, Typography, Button } from "@mui/material"; // Import necessary Material-UI components
+import {
+  AcademicCapIcon,
+  UserGroupIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
+import { Alert, Typography } from "@mui/material";
 import logo from "./images/Frame 229.png";
 
 const SignUpForm = () => {
+  const { setUserType, setUser } = useContext(AppContext);
   const [currentStep, setCurrentStep] = useState(1);
-  const [userType, setUserType] = useState(null);
-  const [address, setAddress] = useState("");
-  const [isProfilePhotoSkipped, setIsProfilePhotoSkipped] = useState(false);
-  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [userType2, setUserType2] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -18,28 +21,30 @@ const SignUpForm = () => {
     confirmPassword: "",
   });
 
-  const [errorMessage, setErrorMessage] = useState(""); // State for error message
-  const [alertMessage, setAlertMessage] = useState(""); // State for alert message
-  const [isAccountCreated, setIsAccountCreated] = useState(false); // State to track account creation
+  const [errorMessage, setErrorMessage] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [isAccountCreated, setIsAccountCreated] = useState(false);
 
   const navigate = useNavigate();
+
+  const handleNavigate = () => {
+    if (userType2 === "Student") {
+      setUserType("student");
+    } else if (userType2 === "instructor") {
+      setUserType("instructor");
+    }
+    navigate("/signin");
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    if (name === "profilePhoto") {
-      setProfilePhoto(files[0]);
-    }
-  };
-
   const handleNext = () => {
-    if (currentStep === 1 && !userType) {
+    if (currentStep === 1 && !userType2) {
       setAlertMessage("Please select your user type.");
-    } else if (currentStep === 1 && userType) {
+    } else if (currentStep === 1 && userType2) {
       setAlertMessage("");
       setCurrentStep((prevStep) => prevStep + 1);
     } else if (currentStep === 2) {
@@ -47,33 +52,19 @@ const SignUpForm = () => {
         !formData.name ||
         !formData.email ||
         !formData.password ||
-        !formData.confirmPassword ||
-        !address
+        !formData.confirmPassword
       ) {
         setAlertMessage("Please fill out all the fields.");
       } else if (formData.password !== formData.confirmPassword) {
         setErrorMessage("Passwords do not match.");
-        setAlertMessage(""); // Clear the alert message
+        setAlertMessage("");
       } else {
-        setErrorMessage(""); // Clear any previous error message
-        setAlertMessage(""); // Clear the alert message
-        setCurrentStep((prevStep) => prevStep + 1);
-      }
-    } else if (currentStep === 3 && isProfilePhotoSkipped && !profilePhoto) {
-      setAlertMessage("Please upload a profile photo or skip.");
-    } else {
-      if (currentStep === 3) {
+        setErrorMessage("");
+        setAlertMessage("");
         handleSubmit();
-        setIsAccountCreated(true); // Show success message
-      } else {
-        setCurrentStep((prevStep) => prevStep + 1);
+        setIsAccountCreated(true);
       }
     }
-  };
-
-  const handleSkipProfilePhoto = () => {
-    setIsProfilePhotoSkipped(true);
-    handleNext();
   };
 
   const handlePrevious = () => {
@@ -81,15 +72,37 @@ const SignUpForm = () => {
     setAlertMessage(""); // Clear any previous alert message
   };
 
-  const handleSubmit =  () => {
-    console.log("Form submitted with data:", {
-        userType,
-        address,
-        profilePhoto,
-        ...formData,
+  const handleSubmit = async () => {
+    if (userType2 === "student") {
+      const response = await fetch("http://localhost:6001/addStudent", {
+        method: "POST",
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
-      setIsAccountCreated(true);  
-    };
+      const data = await response.json();
+    } else if (userType2 === "instructor") {
+      const response = await fetch("http://localhost:6001/addInstructor", {
+        method: "POST",
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          username: formData.username,
+          password: formData.password,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+    }
+    setIsAccountCreated(true);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
@@ -98,7 +111,9 @@ const SignUpForm = () => {
           <img src={logo} alt="Logo" className="mx-auto h-12 w-18" />
         </div>
 
-        <h2 className="text-2xl font-bold font-public-sans text-center text-gray-800">Sign Up</h2>
+        <h2 className="text-2xl font-bold font-public-sans text-center text-gray-800">
+          Sign Up
+        </h2>
 
         {/* Display the alert message at the top */}
         {alertMessage && (
@@ -111,15 +126,18 @@ const SignUpForm = () => {
         {isAccountCreated && (
           <div className="text-center">
             <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-2" />
-            <Typography variant="h6" className="text-green-600 font-semibold mb-4">
+            <Typography
+              variant="h6"
+              className="text-green-600 font-semibold mb-4"
+            >
               Account Created Successfully!
             </Typography>
             <Typography variant="body1" className="text-gray-700 mb-6">
               You can now login and start using your account.
             </Typography>
-            <button 
-                  onClick={() => navigate("/signin")}
-                  className="w-full py-2 bg-pink-600 mt-4 text-white rounded-md hover:bg-pink-700"
+            <button
+              onClick={() => handleNavigate()}
+              className="w-full py-2 bg-pink-600 mt-4 text-white rounded-md hover:bg-pink-700"
             >
               Login Now
             </button>
@@ -130,33 +148,50 @@ const SignUpForm = () => {
           <form onSubmit={handleSubmit} className="mt-6 space-y-6">
             {currentStep === 1 && (
               <div>
-                <h3 className="text-xl font-semibold text-center text-gray-700 mb-4">Select User Type</h3>
+                <h3 className="text-xl font-semibold text-center text-gray-700 mb-4">
+                  Select User Type
+                </h3>
                 <div className="flex flex-col gap-6">
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 cursor-pointer ${userType === "Student" ? "border-pink-500 bg-pink-100" : "border-gray-300"}`}
-                    onClick={() => setUserType("Student")}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 cursor-pointer ${
+                      userType2 === "student"
+                        ? "border-pink-500 bg-pink-100"
+                        : "border-gray-300"
+                    }`}
+                    onClick={() => setUserType2("student")}
                   >
-                    <AcademicCapIcon className="h-16 w-16 text-pink-600 mb-2" /> {/* Updated icon */}
+                    <AcademicCapIcon className="h-16 w-16 text-pink-600 mb-2" />{" "}
                     <p className="font-semibold text-gray-800">Student</p>
-                    <p className="text-sm text-gray-600 mt-2">Learn and grow your skills.</p>
+                    <p className="text-sm text-gray-600 mt-2">
+                      Learn and grow your skills.
+                    </p>
                   </div>
 
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 cursor-pointer ${userType === "Coach" ? "border-pink-500 bg-pink-100" : "border-gray-300"}`}
-                    onClick={() => setUserType("Coach")}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 cursor-pointer ${
+                      userType2 === "instructor"
+                        ? "border-pink-500 bg-pink-100"
+                        : "border-gray-300"
+                    }`}
+                    onClick={() => setUserType2("instructor")}
                   >
-                    <UserGroupIcon className="h-16 w-16 text-pink-600 mb-2" /> {/* Updated icon */}
-                    <p className="font-semibold text-gray-800">Coach</p>
-                    <p className="text-sm text-gray-600 mt-2">Mentor and guide students.</p>
+                    <UserGroupIcon className="h-16 w-16 text-pink-600 mb-2" />{" "}
+                    {/* Updated icon */}
+                    <p className="font-semibold text-gray-800">Instructor</p>
+                    <p className="text-sm text-gray-600 mt-2">
+                      Mentor and guide students.
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
-            {currentStep === 2 && userType && (
+            {currentStep === 2 && userType2 && (
               <div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Name
+                  </label>
                   <input
                     type="text"
                     name="name"
@@ -167,7 +202,9 @@ const SignUpForm = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm mt-1 font-medium text-gray-700">Email</label>
+                  <label className="block text-sm mt-1 font-medium text-gray-700">
+                    Email
+                  </label>
                   <input
                     type="email"
                     name="email"
@@ -177,8 +214,25 @@ const SignUpForm = () => {
                     placeholder="Your email address"
                   />
                 </div>
+                {userType2 === "instructor" && (
+                  <div>
+                    <label className="block text-sm mt-1 font-medium text-gray-700">
+                      User Name
+                    </label>
+                    <input
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      className="w-full p-2 mt-1 border border-gray-300 mt-2 rounded-md"
+                      placeholder="Your email address"
+                    />
+                  </div>
+                )}
                 <div>
-                  <label className="block text-sm mt-1 font-medium text-gray-700">Password</label>
+                  <label className="block text-sm mt-1 font-medium text-gray-700">
+                    Password
+                  </label>
                   <input
                     type="password"
                     name="password"
@@ -189,7 +243,9 @@ const SignUpForm = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm mt-1 font-medium text-gray-700">Confirm Password</label>
+                  <label className="block text-sm mt-1 font-medium text-gray-700">
+                    Confirm Password
+                  </label>
                   <input
                     type="password"
                     name="confirmPassword"
@@ -205,57 +261,6 @@ const SignUpForm = () => {
                     {errorMessage}
                   </Alert>
                 )}
-
-                <div>
-                  <label className="block text-sm mt-1 font-medium text-gray-700">Address</label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="w-full p-2 mt-2 border border-gray-300 rounded-md"
-                    placeholder="Your address"
-                  />
-                </div>
-              </div>
-            )}
-
-            {currentStep === 3 && (
-              <div className="flex flex-col items-center">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Profile Photo</label>
-                <div
-                  className="w-24 h-24 rounded-full border-2 border-gray-300 flex items-center justify-center mb-4"
-                  style={{
-                    backgroundImage: `url(${profilePhoto ? URL.createObjectURL(profilePhoto) : ""})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                >
-                  {!profilePhoto && <span className="text-gray-500">No photo</span>}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => document.getElementById("profilePhotoInput").click()}
-                  className="bg-pink-600 text-white py-2 px-4 rounded-md hover:bg-pink-700"
-                >
-                  Add Profile Photo
-                </button>
-                <input
-                  type="file"
-                  id="profilePhotoInput"
-                  name="profilePhoto"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <div className="flex justify-center mt-4">
-                  <button
-                    type="button"
-                    onClick={handleSkipProfilePhoto}
-                    className="text-gray-600 hover:text-gray-800"
-                  >
-                    Skip for now
-                  </button>
-                </div>
               </div>
             )}
 
@@ -274,7 +279,7 @@ const SignUpForm = () => {
                 onClick={handleNext}
                 className="w-1/4 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700 ml-auto"
               >
-                {currentStep === 3 ? "Submit" : "Next"}
+                {currentStep === 2 ? "Submit" : "Next"}
               </button>
             </div>
           </form>

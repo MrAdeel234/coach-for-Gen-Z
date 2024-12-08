@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useContext } from "react";
 import pic from "./images/mainpic.png";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
+import { AppContext } from "../context/AppContext";
 
 const LandingPage = () => {
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
+  const { setUserType, user } = useContext(AppContext);
 
   const handleNavigate = (type) => {
-    // Route with query parameter for user type
-    navigate(`/signin?userType=${type}`);
+    setUserType(type);
+    navigate(`/signin`);
   };
 
   return (
@@ -17,7 +19,8 @@ const LandingPage = () => {
         {/* Left Section: Text and Buttons */}
         <div className="max-w-lg text-center sm:text-left">
           <h2 className="text-5xl sm:text-6xl font-extrabold text-black leading-tight">
-            WE<br /> CHANGE <br />
+            WE
+            <br /> CHANGE <br />
             LIVES!
           </h2>
           <p className="text-gray-600 text-base sm:text-lg mt-4 sm:mt-6">
@@ -25,18 +28,22 @@ const LandingPage = () => {
             mentoring from top experts in every industry.
           </p>
 
-          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mt-6">
-            <button  
-              className="bg-pink-500 text-white px-6 sm:px-8 py-3 rounded-lg shadow-md hover:bg-pink-600 text-sm sm:text-base"
-              onClick={() => handleNavigate("student")}> {/* Set student */}
-              Login as a Student
-            </button>
-            <button 
-              className="border border-pink-500 text-pink-500 px-6 sm:px-8 py-3 rounded-lg shadow-md hover:bg-pink-100 text-sm sm:text-base"
-              onClick={() => handleNavigate("coach")}> {/* Set coach */}
-              Login as an Instructor
-            </button>
-          </div>
+          {!user && (
+            <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start mt-6 sm:mt-8">
+              <button
+                onClick={() => handleNavigate("student")}
+                className="bg-pink-500 text-white rounded-lg px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg font-semibold shadow-md hover:bg-pink-600 transition-colors duration-300"
+              >
+                login as Student
+              </button>
+              <button
+                onClick={() => handleNavigate("instructor")}
+                className="bg-white text-pink-500 rounded-lg px-6 py-2 sm:px-8 sm:py-3 text-base sm:text-lg font-semibold shadow-md hover:bg-pink-100 transition-colors duration-300 mt-4 sm:mt-0 sm:ml-4"
+              >
+                Login as Instructor
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Section */}
